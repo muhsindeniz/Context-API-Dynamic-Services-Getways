@@ -1,70 +1,83 @@
 # Getting Started with Create React App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+We use the `axios` library when we are going to do service-related operations in React projects. We have to constantly write functions like `axios.get`, `axios.post`, `axios.put`, `axios.delete` every time a transaction is made. Using the axios structure continuously in the same page or component makes the codes more complex.
 
-## Available Scripts
+As a solution to this, we can make it simpler and more useful by combining the structures that we will use continuously with `Context API` and `Functional Programming`.
 
-In the project directory, you can run:
+If the backend structure we are using is the same in `get, post, delete, put` structures, not using this structure will save you time and allow you to make a cleaner structure.
 
-### `npm start`
+To put it simply: A js file named servicesGetWays has been defined in the hooks folder, and there are `GET, POST, DELETE, PUT` functions that we will use constantly in that file.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+I separated each structure into different functions and made it a callable and usable structure. I used the `useMemo` function to avoid unnecessary requests to the server by calling these methods once and then to take advantage of the cache.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+For example, for the GET method:
 
-### `npm test`
+<code>
+  
+      let useGetData = () => {
+      const { token, setToken } = useContext(GlobalSettingsContext)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+      let call = useMemo(() => async (action, params) => {
 
-### `npm run build`
+        let { query } = params;
+        try {
+            if (token) {
+                let {data: {result, result_message}} = await axios.get(query ? `API_URL/${action}?${qs.stringify(query)}` : `API_URL/${action}`, {
+                    headers: {
+                        authorization: `Bearer ${token}`,
+                        'x-api-lang': 'TR'
+                    }
+                })
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+                if (result_message && result_message.type === 'token_expire') {
+                    Cookies.remove("token")
+                    setToken(null);
+                    return (result_message.message)
+                }
+                else if (!result && result_message.type === 'error')
+                    throw Error(result_message.message)
+                else
+                    return ({ result, result_message })
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+            } else {
+                throw new Error({ status: 404 })
+            }
+        }
+        catch (error) {
+            if (error) {
+                if (error?.response?.status === 401)
+                    throw ({ code: 401, message: error.message })
+                if (error?.response?.status === 404)
+                    throw ({ code: 404, message: '404 We couldn't find what you're looking for.' })
+                else if (error?.message === 'Entity not found')
+                    throw ({ code: 0, message: 'Could not find the records you are looking for.' })
+                else
+                    throw ({ code: 0, message: error.message })
+            }
+        }
+      }, [token])
+      return call
+    } 
+  
+     export { useGetData }
+</code>
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+By adding the action and params values that come in this way to the necessary places in axios, a structure was created that allows the desired data to be retrieved with the parameters.
 
-### `npm run eject`
+To use this structure, we first need to import the `ServiceGetways` component to our page.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+`import { useGetData, useDeleteData, usePostData, useUploadFile, usePutData } from '../../Hooks/ServiceGetways';`
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+then we need to assign these structures to a variable:
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+`let getData = useGetData();`
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+After the identification process, all we have to do is write the name of the structure we want to use and write which API collection part to request:
 
-## Learn More
+`
+getData("news", { query: { id: newId } }).then(({ result, result_message }) => {
+  setNews(result)
+})
+`
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+In this way, we communicate with the service by entering the necessary parameters with a simple function. At the same time, Authentication Token parameters checks are made in these functions.
