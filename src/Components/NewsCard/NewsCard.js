@@ -23,11 +23,11 @@ const NewsCard = () => {
     let upload = useUploadFile();
 
     {/** Get Data **/ }
-    useEffect(() => {
-        getData(`posts`, {}).then(({ result }) => {
-            setData(result.data);
-        });
-    }, [])
+    // useEffect(() => {
+    //     getData(`posts`, {}).then(({ result }) => {
+    //         setData(result.data);
+    //     });
+    // }, [])
 
     {/** Post Data **/ }
     // let postData = async () => {
@@ -38,40 +38,40 @@ const NewsCard = () => {
     // }
 
     {/** Delete Data Data **/ }
-    let deleteNews = async (id) => {
-        Swal.fire({
-            title: 'Haberi silnek istiyor musunuz ?',
-            showDenyButton: true,
-            showCancelButton: true,
-            confirmButtonText: 'Evet',
-            denyButtonText: `Hayır`,
-            showCancelButton: false,
-        }).then((result) => {
-            if (result.isConfirmed) {
-                deleteData(`posts/${id}`, {}).then(({ result }) => {
-                    if (result.status === 200) {
-                        Swal.fire({
-                            position: 'center',
-                            icon: 'success',
-                            title: 'Haber başarıyla silindi..',
-                            showConfirmButton: false,
-                            timer: 1500
-                        })
-                    } else {
-                        Swal.fire({
-                            position: 'center',
-                            icon: 'error',
-                            title: 'Haber silinemedi!!',
-                            showConfirmButton: false,
-                            timer: 1500
-                        })
-                    }
-                });
-            } else if (result.isDenied) {
+    // let deleteNews = async (id) => {
+    //     Swal.fire({
+    //         title: 'Haberi silnek istiyor musunuz ?',
+    //         showDenyButton: true,
+    //         showCancelButton: true,
+    //         confirmButtonText: 'Evet',
+    //         denyButtonText: `Hayır`,
+    //         showCancelButton: false,
+    //     }).then((result) => {
+    //         if (result.isConfirmed) {
+    //             deleteData(`posts/${id}`, {}).then(({ result }) => {
+    //                 if (result.status === 200) {
+    //                     Swal.fire({
+    //                         position: 'center',
+    //                         icon: 'success',
+    //                         title: 'Haber başarıyla silindi..',
+    //                         showConfirmButton: false,
+    //                         timer: 1500
+    //                     })
+    //                 } else {
+    //                     Swal.fire({
+    //                         position: 'center',
+    //                         icon: 'error',
+    //                         title: 'Haber silinemedi!!',
+    //                         showConfirmButton: false,
+    //                         timer: 1500
+    //                     })
+    //                 }
+    //             });
+    //         } else if (result.isDenied) {
 
-            }
-        })
-    }
+    //         }
+    //     })
+    // }
 
     {/** Update Data **/ }
 
@@ -122,7 +122,7 @@ const NewsCard = () => {
                     <section key={i} className="card mb-3">
                         <div className="card-header d-flex justify-content-between">
                             <h4 className="m-0">{posts.title}</h4>
-                            <div className="cursor-pointer ml-4" onClick={() => deleteNews(posts.id)}>
+                            <div className="cursor-pointer ml-4">
                                 <i className="far fa-trash-alt"></i>
                             </div>
                         </div>

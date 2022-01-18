@@ -13,13 +13,23 @@ let useGetData = () => {
         let { query } = params;
         try {
             if (token) {
-                let result = await axios.get(query ? `API/${action}?${qs.stringify(query)}` : `API/${action}`, {
+                let {data: {result, result_message}} = await axios.get(query ? `API/${action}?${qs.stringify(query)}` : `API/${action}`, {
                     headers: {
                         authorization: `Bearer ${token}`,
                         'x-api-lang': 'TR'
                     }
                 })
-                return ({ result })
+
+                if (result_message && result_message.type === 'token_expire') {
+                    Cookies.remove("token")
+                    setToken(null);
+                    return (result_message.message)
+                }
+                else if (!result && result_message.type === 'error')
+                    throw Error(result_message.message)
+                else
+                    return ({ result, result_message })
+
             } else {
                 throw new Error({ status: 404 })
             }
@@ -48,14 +58,20 @@ let useDeleteData = () => {
     let call = useMemo(() => async (action) => {
         if (token) {
             try {
-                let result = await axios.delete(`API/${action}`, {
+                let {data: {result, result_message}} = await axios.delete(`API/${action}`, {
                     headers: {
                         authorization: `Bearer ${token}`
                     }
                 })
-                if(result.status === 200){
-                    return ({result})
+                if (result_message && result_message.type === 'token_expire') {
+                    Cookies.remove("token")
+                    setToken(null);
+                    return (result_message.message)
                 }
+                else if (!result && result_message.type === 'error')
+                    throw Error(result_message.message)
+                else
+                    return ({ result, result_message })
             }
             catch (error) {
                 if (error) {
@@ -83,7 +99,7 @@ let usePostData = () => {
     let call = useMemo(() => async (action, values) => {
         if (token) {
             try {
-                let result = await axios.post(`API${action}`, values, {
+                let {data: {result, result_message}} = await axios.post(`API${action}`, values, {
                     headers: {
                         authorization: `Bearer ${token}`
                     }
@@ -132,15 +148,15 @@ let usePutData = () => {
                     }
                 })
 
-                // if (result_message && result_message.type === 'token_expire') {
-                //     Cookies.remove("token")
-                //     setToken(null);
-                //     return (result_message.message)
-                // }
-                // else if (!result && result_message.type === 'error')
-                //     throw Error(result_message.message)
-                // else
-                //     return ({ result, resultMessage })
+                if (result_message && result_message.type === 'token_expire') {
+                    Cookies.remove("token")
+                    setToken(null);
+                    return (result_message.message)
+                }
+                else if (!result && result_message.type === 'error')
+                    throw Error(result_message.message)
+                else
+                    return ({ result, resultMessage })
             }
             catch (error) {
                 if (error) {
@@ -183,15 +199,15 @@ let useUploadFile = () => {
                     }
                 })
 
-                // if (result_message && result_message.type === 'token_expire') {
-                //     Cookies.remove("token")
-                //     setToken(null);
-                //     return (result_message.message)
-                // }
-                // else if (!result && result_message.type === 'error')
-                //     throw Error(result_message.message)
-                // else
-                //     return ({ result, result_message })
+                if (result_message && result_message.type === 'token_expire') {
+                    Cookies.remove("token")
+                    setToken(null);
+                    return (result_message.message)
+                }
+                else if (!result && result_message.type === 'error')
+                    throw Error(result_message.message)
+                else
+                    return ({ result, result_message })
             }
             catch (error) {
                 if (error) {
